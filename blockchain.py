@@ -1,7 +1,8 @@
 from functools import reduce
-from hashlib import sha256
-from json import dumps
 from collections import OrderedDict
+import json
+
+from hash_util import hash_block, hash_string_256
 
 # Initialising blockchain
 MINING_REWARD = 10
@@ -17,6 +18,52 @@ owner = 'Walter'
 participants = {'Walter'}
 
 
+def load_data():
+    with open('blockchain.txt', mode='r') as f:
+        file_content = [json.loads(line.rstrip('\n'))
+                        for line in f.readlines()]
+        global blockchain
+        global open_transactions
+        blockchain = [
+            {
+                'previous_hash': block['previous_hash'],
+                'index': block['index'],
+                'proof': block['proof'],
+                'transactions': [
+                    OrderedDict(
+                        [
+                            ('sender', tx['sender']),
+                            ('recipient', tx['recipient']),
+                            ('amount', tx['amount'])
+                        ]
+                    )
+                    for tx in block['transactions']
+                ]
+            }
+            for block in file_content[0]
+        ]
+
+        open_transactions = [
+            OrderedDict(
+                [
+                    ('sender', tx['sender']),
+                    ('recipient', tx['recipient']),
+                    ('amount', tx['amount'])
+                ]
+            ) for tx in file_content[1]
+        ]
+
+
+load_data()
+
+
+def save_data():
+    with open('blockchain.txt', mode='w') as f:
+        f.write(json.dumps(blockchain))
+        f.write('\n')
+        f.write(json.dumps(open_transactions))
+
+
 def get_last_blockchain_value():
     """ Returns last value in the blockchain """
     if len(blockchain) <= 0:
@@ -24,21 +71,10 @@ def get_last_blockchain_value():
     return blockchain[-1]
 
 
-def hash_block(block):
-    """ Generates a hash of the block by converting the block to 
-    an utf-8 JSON string and hashing the string using sha256
-
-    Arguments:
-        :block: The block that should be hashed
-    """
-    # sort_keys ensures that the keys are always sorted and hence the hash never changes for the same block
-    return sha256(dumps(block, sort_keys=True).encode()).hexdigest()
-
-
 def valid_proof(transactions, last_hash, proof):
     guess = (str(transactions) + str(last_hash) + str(proof)).encode()
-    guess_hash = sha256(guess).hexdigest()
-    return guess_hash[0:2] == '00'
+    guess_hash = hash_string_256(guess)
+    return guess_hash[0: 2] == '00'
 
 
 def proof_of_work():
@@ -93,6 +129,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
         open_transactions.append(transaction)
         participants.add(sender)
         participants.add(recipient)
+        save_data()
         return True
     return False
 
@@ -190,6 +227,7 @@ while waiting_for_input:
     elif user_choice == '2':
         if mine_block():
             open_transactions = []
+            save_data()
     elif user_choice == '3':
         print_blockchain()
     elif user_choice == '4':
