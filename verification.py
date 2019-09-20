@@ -29,7 +29,7 @@ class Verification:
             :transaction: The transaction to be verified
         """
 
-        sender_balance = get_balance(transaction.sender)
+        sender_balance = get_balance()
         return sender_balance >= transaction.amount
 
     def verify_transactions(self, open_transactions, get_balance):
