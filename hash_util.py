@@ -14,5 +14,7 @@ def hash_block(block):
         :block: The block that should be hashed
     """
     hashable_block = block.__dict__.copy()
+    hashable_block['transactions'] = [tx.to_ordered_dict()
+                                      for tx in hashable_block['transactions']]
     # sort_keys ensures that the keys are always sorted and hence the hash never changes for the same block
     return sha256(dumps(hashable_block, sort_keys=True).encode()).hexdigest()
