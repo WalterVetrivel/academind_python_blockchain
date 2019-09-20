@@ -13,5 +13,6 @@ def hash_block(block):
     Arguments:
         :block: The block that should be hashed
     """
+    hashable_block = block.__dict__.copy()
     # sort_keys ensures that the keys are always sorted and hence the hash never changes for the same block
-    return sha256(dumps(block, sort_keys=True).encode()).hexdigest()
+    return sha256(dumps(hashable_block, sort_keys=True).encode()).hexdigest()
