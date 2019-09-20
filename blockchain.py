@@ -12,7 +12,6 @@ blockchain = [genesis_block]
 open_transactions = []
 
 owner = 'Walter'
-participants = {'Walter'}
 
 
 def load_data():
@@ -73,7 +72,6 @@ def save_data():
                     ) for block in blockchain
                 ]
             ]
-            print(saveable_chain)
             f.write(json.dumps(saveable_chain))
             f.write('\n')
             saveable_transactions = [tx.__dict__ for tx in open_transactions]
@@ -222,7 +220,7 @@ while waiting_for_input:
     print('1. Add transaction')
     print('2. Mine block')
     print('3. Output blockchain')
-    print('5. Check transaction validity')
+    print('4. Check transaction validity')
     print('0. Exit')
     print('-' * 25)
     user_choice = get_user_choice()
@@ -241,7 +239,7 @@ while waiting_for_input:
             save_data()
     elif user_choice == '3':
         print_blockchain()
-    elif user_choice == '5':
+    elif user_choice == '4':
         verify_transactions()
     elif user_choice == '0':
         waiting_for_input = False
