@@ -6,7 +6,8 @@ from verification import Verification
 
 class Node:
     def __init__(self):
-        self.id = str(uuid4())
+        # self.id = str(uuid4())
+        self.id = 'Walter'
         self.blockchain = Blockchain(self.id)
 
     def get_transaction_value(self):
@@ -20,7 +21,7 @@ class Node:
         return input('Please enter your choice: ')
 
     def print_blockchain(self):
-        for block in self.blockchain.chain:
+        for block in self.blockchain.get_chain():
             print(block)
 
     def listen_for_input(self):
@@ -38,8 +39,6 @@ class Node:
             print('-' * 25)
             user_choice = self.get_user_choice()
 
-            verifier = Verification()
-
             if user_choice == '1':
                 tx_data = self.get_transaction_value()
                 recipient, amount = tx_data
@@ -48,19 +47,19 @@ class Node:
                     print('Added transaction')
                 else:
                     print('Transaction failed')
-                print(self.blockchain.open_transactions)
+                print(self.blockchain.get_open_transactions())
             elif user_choice == '2':
                 self.blockchain.mine_block()
             elif user_choice == '3':
                 self.print_blockchain()
             elif user_choice == '4':
-                verifier.verify_transactions(
-                    self.blockchain.open_transactions, self.blockchain.get_balance)
+                Verification.verify_transactions(
+                    self.blockchain.get_open_transactions(), self.blockchain.get_balance)
             elif user_choice == '0':
                 waiting_for_input = False
             else:
                 print('Invalid choice')
-            if not verifier.verify_chain(self.blockchain.chain):
+            if not Verification.verify_chain(self.blockchain.get_chain()):
                 print('Invalid chain')
                 break
             print('The balance of {} is {:6.2f}'.format(

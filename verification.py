@@ -2,7 +2,9 @@ from hash_util import hash_block, hash_string_256
 
 
 class Verification:
-    def verify_chain(self, blockchain):
+    # Class method because it accesses valid_proof
+    @classmethod
+    def verify_chain(cls, blockchain):
         """ Verify the current blockchain """
         is_valid = True
 
@@ -13,7 +15,7 @@ class Verification:
             elif block.previous_hash == hash_block(blockchain[index - 1]):
                 continue
             # Checking proof of work
-            elif not self.valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
+            elif not cls.valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
                 is_valid = False
                 break
             else:
@@ -22,7 +24,8 @@ class Verification:
 
         return is_valid
 
-    def verify_transaction(self, transaction, get_balance):
+    @staticmethod
+    def verify_transaction(transaction, get_balance):
         """ Verifies whether the transaction is possible, i.e., the participant can afford the transaction
 
         Arguments:
@@ -32,10 +35,13 @@ class Verification:
         sender_balance = get_balance()
         return sender_balance >= transaction.amount
 
-    def verify_transactions(self, open_transactions, get_balance):
-        return all([self.verify_transaction(tx, get_balance) for tx in open_transactions])
+    # Class method because it accesses verify_transaction
+    @classmethod
+    def verify_transactions(cls, open_transactions, get_balance):
+        return all([cls.verify_transaction(tx, get_balance) for tx in open_transactions])
 
-    def valid_proof(self, transactions, last_hash, proof):
+    @staticmethod
+    def valid_proof(transactions, last_hash, proof):
         """ To check whether a given proof generates a valid hash or not for the given transactions 
 
         Arguments:
