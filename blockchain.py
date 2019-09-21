@@ -148,6 +148,9 @@ class Blockchain:
             :amount: The amount of coins sent (default = 1.0)
         """
 
+        if self.hosting_node == None:
+            return False
+
         transaction = Transaction(sender, recipient, amount)
 
         if Verification.verify_transaction(transaction, self.get_balance):
@@ -159,6 +162,9 @@ class Blockchain:
 
     def mine_block(self):
         """ To mine a new block """
+
+        if self.hosting_node == None:
+            return False
 
         last_block = self.get_last_blockchain_value()
 
