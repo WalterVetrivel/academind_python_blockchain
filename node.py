@@ -21,7 +21,7 @@ class Node:
         return input('Please enter your choice: ')
 
     def print_blockchain(self):
-        for block in self.blockchain.get_chain():
+        for block in self.blockchain.chain:
             print(block)
 
     def listen_for_input(self):
@@ -59,7 +59,7 @@ class Node:
                 waiting_for_input = False
             else:
                 print('Invalid choice')
-            if not Verification.verify_chain(self.blockchain.get_chain()):
+            if not Verification.verify_chain(self.blockchain.chain):
                 print('Invalid chain')
                 break
             print('The balance of {} is {:6.2f}'.format(
