@@ -5,6 +5,7 @@ from utils.hash_util import hash_block, hash_string_256
 from utils.verification import Verification
 from block import Block
 from transaction import Transaction
+from wallet import Wallet
 
 MINING_REWARD = 10
 
@@ -45,6 +46,7 @@ class Blockchain:
                             Transaction(
                                 tx['sender'],
                                 tx['recipient'],
+                                tx['signature'],
                                 tx['amount']
                             )
                             for tx in block['transactions']
@@ -58,6 +60,7 @@ class Blockchain:
                     Transaction(
                         tx['sender'],
                         tx['recipient'],
+                        tx['signature'],
                         tx['amount']
                     ) for tx in file_content[1]
                 ]
@@ -139,7 +142,7 @@ class Blockchain:
 
         return amount_received - amount_sent
 
-    def add_transaction(self, recipient, sender, amount=1.0):
+    def add_transaction(self, recipient, sender, signature, amount=1.0):
         """ Append a new transaction to the blockchain
 
         Arguments:
@@ -151,7 +154,7 @@ class Blockchain:
         if self.hosting_node == None:
             return False
 
-        transaction = Transaction(sender, recipient, amount)
+        transaction = Transaction(sender, recipient, signature, amount)
 
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
@@ -176,10 +179,17 @@ class Blockchain:
 
         # Reward for mining
         reward_transaction = Transaction(
-            'MINING', self.hosting_node, MINING_REWARD)
+            'MINING', self.hosting_node, '', MINING_REWARD)
 
         # Copying so that open transactions is not affected if something goes wrong
         copied_transactions = self.__open_transactions[:]
+
+        # Verifying each transaction
+        for tx in copied_transactions:
+            if not Wallet.verify_transaction(tx):
+                return False
+
+        # Adding the reward transaction
         copied_transactions.append(reward_transaction)
 
         # Creating the new block
