@@ -1,3 +1,5 @@
+""" Provides verification helper methods """
+
 from utils.hash_util import hash_block, hash_string_256
 
 

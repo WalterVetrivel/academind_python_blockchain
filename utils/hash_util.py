@@ -1,3 +1,5 @@
+""" Provides utility functions for hashing """
+
 from hashlib import sha256
 from json import dumps
 

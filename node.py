@@ -69,5 +69,8 @@ class Node:
             print('Goodbye')
 
 
-node = Node()
-node.listen_for_input()
+# Check execution context using __name__ and only execute if it is '__main__'
+# This prevents the following code from execution if node is imported and used somewhere else
+if __name__ == '__main__':
+    node = Node()
+    node.listen_for_input()
