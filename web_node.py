@@ -20,12 +20,14 @@ def create_keys():
     status_code = 201
 
     if wallet.save_keys():
-        response = {
-            'public_key': wallet.public_key,
-            'private_key': wallet.private_key
-        }
         global blockchain
         blockchain = Blockchain(wallet.public_key)
+
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key,
+            'funds': blockchain.get_balance()
+        }
     else:
         response = {
             'message': 'Saving the keys failed'
@@ -41,15 +43,39 @@ def load_keys():
     status_code = 201
 
     if wallet.load_keys():
-        response = {
-            'public_key': wallet.public_key,
-            'private_key': wallet.private_key
-        }
         global blockchain
         blockchain = Blockchain(wallet.public_key)
+
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key,
+            'funds': blockchain.get_balance()
+        }
     else:
         response = {
             'message': 'Saving the keys failed'
+        }
+        status_code = 500
+
+    return jsonify(response), status_code
+
+
+@app.route('/balance', methods=['GET'])
+def get_balance():
+    response = None
+    status_code = 200
+
+    balance = blockchain.get_balance()
+
+    if balance != None:
+        response = {
+            'message': 'Success',
+            'balance': balance
+        }
+    else:
+        response = {
+            'message': 'Loading balance failed',
+            'wallet_set_up': wallet.public_key != None
         }
         status_code = 500
 
@@ -83,7 +109,8 @@ def mine():
 
         response = {
             'message': 'Block added successfully',
-            'block': dict_block
+            'block': dict_block,
+            'funds': blockchain.get_balance()
         }
 
         return jsonify(response), 201

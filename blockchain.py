@@ -118,6 +118,8 @@ class Blockchain:
         Arguments:
             :participant: A participant in the blockchain
         """
+        if self.hosting_node == None:
+            return None
 
         participant = self.hosting_node
 
