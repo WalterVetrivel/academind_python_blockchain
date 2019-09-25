@@ -167,7 +167,7 @@ class Blockchain:
         """ To mine a new block """
 
         if self.hosting_node == None:
-            return False
+            return None
 
         last_block = self.get_last_blockchain_value()
 
@@ -187,7 +187,7 @@ class Blockchain:
         # Verifying each transaction
         for tx in copied_transactions:
             if not Wallet.verify_transaction(tx):
-                return False
+                return None
 
         # Adding the reward transaction
         copied_transactions.append(reward_transaction)
@@ -200,4 +200,4 @@ class Blockchain:
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()
-        return True
+        return block
