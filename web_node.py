@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from wallet import Wallet
@@ -173,7 +173,7 @@ def mine():
 
 @app.route('/', methods=['GET'])
 def get_ui():
-    return 'Praise the Lord'
+    return send_from_directory('ui', 'node.html')
 
 
 if __name__ == '__main__':
