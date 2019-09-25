@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from wallet import Wallet
@@ -82,9 +82,11 @@ def get_balance():
     return jsonify(response), status_code
 
 
-@app.route('/', methods=['GET'])
-def get_ui():
-    return 'Praise the Lord'
+@app.route('/transactions', methods=['GET'])
+def get_open_transactions():
+    transactions = [tx.__dict__ for tx in blockchain.get_open_transactions()]
+
+    return jsonify(transactions), 200
 
 
 @app.route('/chain', methods=['GET'])
@@ -97,6 +99,52 @@ def get_chain():
                                  for tx in block['transactions']]
 
     return jsonify(dict_chain), 200
+
+
+@app.route('/transaction', methods=['POST'])
+def add_transaction():
+    required_fields = ['recipient', 'amount']
+
+    if wallet.public_key == None:
+        response = {
+            'message': 'No wallet setup'
+        }
+
+        return jsonify(response), 400
+
+    req_body = request.get_json()
+
+    if ((not req_body) or (not all(field in req_body for field in required_fields))):
+        response = {
+            'message': 'Required data is missing'
+        }
+
+        return jsonify(response), 400
+
+    sender = str(wallet.public_key).strip()
+    recipient = req_body['recipient']
+    amount = req_body['amount']
+
+    signature = wallet.sign_transaction(sender, recipient, amount)
+    if blockchain.add_transaction(recipient, sender, signature, amount):
+        response = {
+            'message': 'Transaction added',
+            'transaction': {
+                'sender': sender,
+                'recipient': recipient,
+                'amount': amount,
+                'signature': signature
+            },
+            'funds': blockchain.get_balance()
+        }
+
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Transaction failed'
+        }
+
+        return jsonify(response), 500
 
 
 @app.route('/mine', methods=['POST'])
@@ -121,6 +169,11 @@ def mine():
         }
 
         return jsonify(response), 500
+
+
+@app.route('/', methods=['GET'])
+def get_ui():
+    return 'Praise the Lord'
 
 
 if __name__ == '__main__':
