@@ -66,7 +66,12 @@
 				<div v-if="error" class="alert alert-danger" role="alert">
 					{{ error }}
 				</div>
-				<div v-if="success" class="alert alert-success" role="alert">
+				<div
+					v-if="success"
+					class="alert alert-success"
+					role="alert"
+					style="word-wrap:break-word"
+				>
 					{{ success }}
 				</div>
 				<div class="row">
@@ -88,7 +93,7 @@
 						</div>
 					</div>
 					<div class="col text-right">
-						<h2>Funds: {{ funds }}</h2>
+						<h2>Funds: {{ funds.toFixed(2) }}</h2>
 					</div>
 				</div>
 				<hr />
@@ -262,52 +267,8 @@
 			new Vue({
 				el: '#app',
 				data: {
-					blockchain: [
-						{
-							previous_hash: 'fawsqwar2',
-							index: 0,
-							transactions: [
-								{
-									sender: 'fsdf23',
-									recipient: 'fadwfs314',
-									amount: 5.5
-								},
-								{
-									sender: 'fssfsddf23',
-									recipient: 'fadewasfwfs314',
-									amount: 15.5
-								}
-							]
-						},
-						{
-							previous_hash: 'awdsf14',
-							index: 1,
-							transactions: [
-								{
-									sender: 'afe',
-									recipient: 'fadwe322fs314',
-									amount: 1.5
-								},
-								{
-									sender: 'fssddf23',
-									recipient: 'fadesfwfs314',
-									amount: 4.5
-								}
-							]
-						}
-					],
-					openTransactions: [
-						{
-							sender: '23r32r3fsas',
-							recipient: 'feadsf25',
-							amount: 5.9
-						},
-						{
-							sender: '23r23r2ra3fsas',
-							recipient: 'sdfsfa',
-							amount: 1.5
-						}
-					],
+					blockchain: [],
+					openTransactions: [],
 					wallet: null,
 					view: 'chain',
 					walletLoading: false,
@@ -332,73 +293,101 @@
 					}
 				},
 				methods: {
-					onCreateWallet: function() {
+					onCreateWallet: async function() {
 						// Send Http request to create a new wallet (and return keys)
-						if (Math.random() > 0.5) {
+						try {
+							this.walletLoading = true;
+							const response = await axios.post('/wallet');
 							this.error = null;
-							this.success = 'Successfully stored transaction!';
+							this.success = `Created wallet successfully. 
+								Public key: ${response.data.public_key}\n
+								Private key: ${response.data.private_key}`;
 							this.wallet = {
-								private_key: 'fsde2523tfasg234twfg24qafew',
-								public_key: '532fsdarf23rf'
+								public_key: response.data.public_key,
+								private_key: response.data.private_key
 							};
-						} else {
-							this.success = null;
-							this.error = 'Something went wrong!';
+							this.funds = response.data.funds;
+							this.walletLoading = false;
+						} catch (err) {
+							console.error(err);
+							this.error = err.message;
 							this.wallet = null;
+							this.walletLoading = false;
 						}
 					},
-					onLoadWallet: function() {
+					onLoadWallet: async function() {
 						// Send Http request to load an existing wallet (from a file on the server)
-						if (Math.random() > 0.5) {
+						try {
+							this.walletLoading = true;
+							const response = await axios.get('/wallet');
 							this.error = null;
-							this.success = 'Successfully stored transaction!';
+							this.success = `Created wallet successfully. 
+								Public key: ${response.data.public_key}\n
+								Private key: ${response.data.private_key}`;
 							this.wallet = {
-								private_key: 'fsde2523tfasg234twfg24qafew',
-								public_key: '532fsdarf23rf'
+								public_key: response.data.public_key,
+								private_key: response.data.private_key
 							};
-						} else {
-							this.success = null;
-							this.error = 'Something went wrong!';
+							this.funds = response.data.funds;
+							this.walletLoading = false;
+						} catch (err) {
+							console.error(err);
+							this.error = err.message;
 							this.wallet = null;
+							this.walletLoading = false;
 						}
 					},
-					onSendTx: function() {
+					onSendTx: async function() {
 						// Send Transaction to backend
-						if (Math.random() > 0.5) {
-							this.error = null;
-							this.success = 'Successfully stored transaction!';
-							this.funds = this.funds - this.outgoingTx.amount;
-						} else {
-							this.success = null;
-							this.error = 'Something went wrong!';
+						try {
+							this.txLoading = true;
+							const response = await axios.post('/transaction', {
+								recipient: this.outgoingTx.recipient,
+								amount: this.outgoingTx.amount
+							});
+							this.error = false;
+							this.funds = response.data.funds;
+							this.txLoading = false;
+						} catch (err) {
+							console.error(err);
+							this.txLoading = false;
 						}
 					},
-					onMine: function() {
-						if (Math.random() > 0.5) {
+					onMine: async function() {
+						try {
+							const response = await axios.post('/mine');
 							this.error = null;
-							this.success = 'Successfully mined coins!';
-							this.funds = this.funds + 10;
-						} else {
+							this.success = response.data.message;
+							console.log(response.data);
+							this.funds = response.data.funds;
+						} catch (err) {
+							console.error(err);
 							this.success = null;
-							this.error = 'Something went wrong!';
+							this.error = err.message;
 						}
 					},
-					onLoadData: function() {
+					onLoadData: async function() {
 						if (this.view === 'chain') {
 							// Load blockchain data
-							if (Math.random() > 0.5) {
-								this.error = null;
-							} else {
-								this.success = null;
-								this.error = 'Something went wrong!';
+							try {
+								this.dataLoading = true;
+								const response = await axios.get('/chain');
+								this.blockchain = response.data;
+								this.dataLoading = false;
+							} catch (err) {
+								console.error(err);
+								this.error = err.message;
 							}
 						} else {
 							// Load transaction data
-							if (Math.random() > 0.5) {
-								this.error = null;
-							} else {
-								this.success = null;
-								this.error = 'Something went wrong!';
+							try {
+								this.dataLoading = true;
+								const response = await axios.get('/transactions');
+								this.openTransactions = response.data;
+								this.dataLoading = false;
+							} catch (err) {
+								console.error(err);
+								this.error = err.message;
 							}
 						}
 					}
