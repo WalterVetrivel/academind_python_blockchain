@@ -11,13 +11,14 @@ MINING_REWARD = 10
 
 
 class Blockchain:
-    def __init__(self, hosting_node_id):
+    def __init__(self, public_key, node_id):
         # Initialising blockchain
         genesis_block = Block(0, '', [], 100, 0)
         self.chain = [genesis_block]
         self.__open_transactions = []
         self.__peer_nodes = set()
-        self.hosting_node = hosting_node_id
+        self.public_key = public_key
+        self.node_id = node_id
         self.load_data()
 
     @property
@@ -35,7 +36,7 @@ class Blockchain:
         """ Loads the blockchain and open transactions from file """
 
         try:
-            with open('blockchain.txt', mode='r') as f:
+            with open(f'blockchain-{self.node_id}.txt', mode='r') as f:
                 file_content = [json.loads(line.rstrip('\n'))
                                 for line in f.readlines()]
 
@@ -75,7 +76,7 @@ class Blockchain:
         """ Saves the blockchain and open transactions to a file """
 
         try:
-            with open('blockchain.txt', mode='w') as f:
+            with open(f'blockchain-{self.node_id}.txt', mode='w') as f:
                 saveable_chain = [
                     block.__dict__
                     for block in
@@ -124,10 +125,10 @@ class Blockchain:
         Arguments:
             :participant: A participant in the blockchain
         """
-        if self.hosting_node == None:
+        if self.public_key == None:
             return None
 
-        participant = self.hosting_node
+        participant = self.public_key
 
         # Getting all the amounts sent by the participant
         tx_sender = [[tx.amount for tx in block.transactions
@@ -159,7 +160,7 @@ class Blockchain:
             :amount: The amount of coins sent (default = 1.0)
         """
 
-        if self.hosting_node == None:
+        if self.public_key == None:
             return False
 
         transaction = Transaction(sender, recipient, signature, amount)
@@ -174,7 +175,7 @@ class Blockchain:
     def mine_block(self):
         """ To mine a new block """
 
-        if self.hosting_node == None:
+        if self.public_key == None:
             return None
 
         last_block = self.get_last_blockchain_value()
@@ -187,7 +188,7 @@ class Blockchain:
 
         # Reward for mining
         reward_transaction = Transaction(
-            'MINING', self.hosting_node, '', MINING_REWARD)
+            'MINING', self.public_key, '', MINING_REWARD)
 
         # Copying so that open transactions is not affected if something goes wrong
         copied_transactions = self.__open_transactions[:]

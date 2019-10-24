@@ -8,9 +8,6 @@ from blockchain import Blockchain
 app = Flask(__name__)
 CORS(app)
 
-wallet = Wallet()
-blockchain = Blockchain(wallet.public_key)
-
 
 @app.route('/wallet', methods=['POST'])
 def create_keys():
@@ -21,7 +18,7 @@ def create_keys():
 
     if wallet.save_keys():
         global blockchain
-        blockchain = Blockchain(wallet.public_key)
+        blockchain = Blockchain(wallet.public_key, port)
 
         response = {
             'public_key': wallet.public_key,
@@ -44,7 +41,7 @@ def load_keys():
 
     if wallet.load_keys():
         global blockchain
-        blockchain = Blockchain(wallet.public_key)
+        blockchain = Blockchain(wallet.public_key, port)
 
         response = {
             'public_key': wallet.public_key,
@@ -201,6 +198,7 @@ def remove_node(node_url):
         }
         return jsonify(response), 400
 
+    print(node_url)
     blockchain.remove_peer_node(node_url)
     response = {
         'message': 'Node removed',
@@ -217,10 +215,22 @@ def get_nodes():
     return jsonify(response), 200
 
 
+@app.route('/network', methods=['GET'])
+def get_network_ui():
+    return send_from_directory('ui', 'network.html')
+
+
 @app.route('/', methods=['GET'])
-def get_ui():
+def get_node_ui():
     return send_from_directory('ui', 'node.html')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', type=int, default=5000)
+    args = parser.parse_args()
+    port = args.port
+    wallet = Wallet(port)
+    blockchain = Blockchain(wallet.public_key, port)
+    app.run(host='0.0.0.0', port=port)
