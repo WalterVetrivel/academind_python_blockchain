@@ -195,6 +195,9 @@
 						>
 							Mine Coins
 						</button>
+						<button class="btn btn-warning" @click="onResolve">
+							Resolve Conflicts
+						</button>
 					</div>
 				</div>
 				<div class="row">
@@ -401,6 +404,16 @@
 								console.error(err);
 								this.error = err.message;
 							}
+						}
+					},
+					onResolve: async function() {
+						try {
+							const response = await axios.post('/resolve-conflicts');
+							this.error = null;
+							this.success = response.data.message;
+						} catch (err) {
+							console.error(err);
+							this.error = err.message;
 						}
 					}
 				}
